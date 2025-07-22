@@ -1,0 +1,13 @@
+[project]
+name = "squarebot"
+version = "0.1.0"
+description = "bot simples pra discord"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "aiosqlite>=0.21.0",
+    "discord-py>=2.5.2",
+    "pillow>=11.3.0",
+    "python-dotenv>=1.1.1",
+    "squarecloud-api>=3.7.3",
+]

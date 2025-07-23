@@ -39,8 +39,6 @@
 
 ## 📦 Instalação
 
-# PIP
-
 ```bash
 
 # Clone o repositorio

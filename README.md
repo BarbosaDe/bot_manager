@@ -57,4 +57,4 @@ python build/lib/main.py
 
 ---
 
-_💡 Configure seu `.env` dentro do diretório `src`. Use `.env.example` como referência._
+_💡 Configure seu `.env` dentro do diretório `build/lib`. Use `.env.example` como referência._

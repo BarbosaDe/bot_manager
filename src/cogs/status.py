@@ -130,7 +130,7 @@ class StatusCog(commands.Cog):
             print(e)
 
             await interaction.edit_original_response(
-                content="Não foi encontrado um app com esse id", ephemeral=True
+                content="Não foi encontrado um app com esse id"
             )
 
     @command_callback.autocomplete(name="name")

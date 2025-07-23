@@ -43,12 +43,12 @@ class SquareManager(Client):
 
         return self.cache["applications"]
 
-    async def upload_application(self, bytes) -> Union[str, None]:
+    async def upload_application(self, bytes, filename) -> Union[str, None]:
         """Faz upload de uma aplicacão para SquareCloud"""
         file = File(bytes)
 
         try:
-            return await square_manager.upload_app(file)
+            return await square_manager.upload_app(file, filename)
 
         except Exception as e:
             error = UPLOAD_ERRORS_TRANSLATIONS.get(e.__class__.__name__)

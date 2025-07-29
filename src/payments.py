@@ -1,23 +1,32 @@
 import os
 import uuid
+from abc import ABC, abstractmethod
 
 import aiohttp
 
-from database import Transaction
+from database.models import Plan, Transaction
+from database.repository import TransactionRepository
 
 
-class Payment:
-    @staticmethod
-    async def create_qr(payer_id: int, server_id: int, price: int) -> dict:
+class BasePayment(ABC):
+    @abstractmethod
+    async def create(self, payer: int, server_id: int, plan: Plan) -> dict: ...
+
+    @abstractmethod
+    async def get(self, payment_id: int) -> dict: ...
+
+
+class MercadoPagoDriver(BasePayment):
+    async def create(self, payer_id: int, server_id: int, plan: Plan) -> dict:
         headers = {
             "x-idempotency-key": uuid.uuid4().hex,
             "Authorization": f"Bearer {os.getenv('MP_ACCESS_TOKEN')}",
         }
         payment_data = {
-            "transaction_amount": price,
+            "transaction_amount": plan.price,
             "description": "lorem ipsom",
             "payment_method_id": "pix",
-            "payer": {"email": "foo@gmail.com", "first_name": payer_id},
+            "payer": {"email": "foo@gmail.com"},
         }
 
         async with aiohttp.ClientSession() as session:
@@ -38,20 +47,22 @@ class Payment:
                     "qr_code"
                 ]
 
-                await Transaction.create(
-                    payer_id=payer_id,
-                    price=price,
+                transaction = Transaction(
                     payment_id=payment_id,
+                    payer_id=payer_id,
                     server_id=server_id,
+                    plan=plan.id,
+                    price=plan.price,
                 )
+
+                await TransactionRepository.insert(transaction)
 
                 return {
                     "qr_code_base64": qr_code_base64,
                     "qr_code": qr_code_str,
                 }
 
-    @staticmethod
-    async def get(payment_id: int) -> dict:
+    async def get(self, payment_id: int) -> dict:
         headers = {
             "Authorization": f"Bearer {os.getenv('MP_ACCESS_TOKEN')}",
         }
@@ -61,3 +72,17 @@ class Payment:
                 f"https://api.mercadopago.com/v1/payments/{payment_id}", headers=headers
             ) as response:
                 return await response.json()
+
+
+class PaymentService:
+    def __init__(self, service: BasePayment):
+        self.service = service
+
+    async def create(self, payer: int, server_id: int, plan: Plan):
+        return await self.service.create(payer, server_id, plan)
+
+    async def get(self, payment_id: int):
+        return await self.service.get(payment_id)
+
+
+payment_service = PaymentService(MercadoPagoDriver())

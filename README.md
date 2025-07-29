@@ -31,7 +31,7 @@
 - [Python 3.13](https://www.python.org/)
 - [discord.py (v2.5.2)](https://discordpy.readthedocs.io/)
 - [aiohttp (0.21.0)](https://docs.aiohttp.org/en/stable/)
-- [squarecloud-api (3.7.3)](https://github.com/squarecloudofc/sdk-api-py)
+- [squarecloud-api (3.7.4)](https://github.com/squarecloudofc/sdk-api-py)
 - [pillow (11.3.0)](https://pypi.org/project/pillow/)
 - [aisqlite (0.21.0)](https://aiosqlite.omnilib.dev/en/stable/api.html)
 

@@ -1,5 +1,4 @@
 import asyncio
-import logging
 import os
 from pathlib import Path
 
@@ -8,15 +7,20 @@ from aiohttp import web
 from discord.ext import commands
 from dotenv import load_dotenv
 
-from database import Database, Transaction, Whitelist
-from payments import Payment
+from database import Database
+from database.models import Plan, User
+from database.repository import TransactionRepository, UserRepository
+from payments import payment_service
+from utils.logger import logger
 
 load_dotenv()
 
 COGS_DIR = Path(__file__).parent / "cogs"
 
+HOST = os.getenv("HOST")
+PORT = os.getenv("PORT")
 
-discord.utils.setup_logging(level=logging.INFO)
+
 bot = commands.Bot(command_prefix="!", intents=discord.Intents.all(), help_command=None)
 webhook = web.Application()
 
@@ -29,23 +33,41 @@ async def load_extensions():
 
 @bot.event
 async def on_ready():
-    print("[on_ready] Bot Pronto.")
+    logger.info("[on_ready] Bot Pronto.")
 
     await bot.tree.sync()
 
 
 @bot.event
 async def setup_hook():
-    print("[setup_hook] Iniciando bot...")
+    logger.info("[setup_hook] Iniciando bot...")
 
     await Database.init_db()
-    print("[setup_hook] Banco de dados pronto.")
+    logger.info("[setup_hook] Banco de dados pronto.")
 
     await load_extensions()
-    print("[setup_hook] Extensões carregadas.")
+    logger.info("[setup_hook] Extensões carregadas.")
 
     await bot.tree.sync()
-    print("[setup_hook] Slash commands sincronizados.")
+    logger.info("[setup_hook] Slash commands sincronizados.")
+
+
+async def send_confirmation_payment(server_id, payer_id):
+    server = await bot.fetch_guild(server_id)
+    user = await server.fetch_member(payer_id)
+
+    embed = discord.Embed(
+        title="✅ Plano adquirido com sucesso!",
+        description="Você adquiriu o plano **tanana**.",
+        color=discord.Color.green(),
+    )
+
+    embed.add_field(name="💰 Preço", value="R$ 20.00", inline=True)
+    embed.add_field(name="🧠 RAM máxima", value="20244 MB", inline=True)
+    embed.set_footer(text="Obrigado por escolher nossos serviços!")
+    embed.set_thumbnail(url="https://cdn-icons-png.flaticon.com/512/190/190411.png")
+
+    await user.send(embed=embed)
 
 
 async def notifications(request: web.Request):
@@ -54,24 +76,25 @@ async def notifications(request: web.Request):
 
         payment_id = queryparams.get("data.id")
 
-        payment = await Payment.get(payment_id)
+        payment = await payment_service.get(payment_id)
 
         if payment["status"] == "approved":
-            transaction = await Transaction.get(payment_id)
+            transaction = await TransactionRepository.get(payment_id)
 
-            await transaction.change_status(payment_id, "success")
+            plan = Plan(id=transaction.plan)
+            user = User(user_id=transaction.payer_id, plan=plan)
 
-            payer_id = transaction.payer_id
+            await asyncio.gather(
+                TransactionRepository.change_status(transaction),
+                UserRepository.insert(user),
+            )
 
-            await Whitelist.create(payer_id, 1)
+            return await send_confirmation_payment(
+                transaction.server_id, transaction.payer_id
+            )
 
-            server = await bot.fetch_guild(transaction.server_id)
-            user = await server.fetch_member(payer_id)
-
-            await user.send(content="Seu pagamento foi aprovado.")
-
-    except Exception as e:
-        print(f"[WEBHOOK ERROR: {e}]")
+    except Exception:
+        logger.critical("Erro verificar/atualizar status do pagamento", exc_info=True)
 
     finally:
         return web.Response(status=200, text="OK!")
@@ -83,10 +106,10 @@ webhook.add_routes([web.post("/notifications", notifications)])
 async def main():
     runner = web.AppRunner(webhook)
     await runner.setup()
-    site = web.TCPSite(runner, "127.0.0.1", 5000)
+    site = web.TCPSite(runner, HOST, PORT)
     await site.start()
 
-    print("[Webhook] Servidor iniciado em http://127.0.0.1:5000")
+    logger.info(f"[Webhook] Servidor iniciado em http://{HOST}:{PORT}")
 
     await bot.start(os.environ["BOT_TOKEN"])
 

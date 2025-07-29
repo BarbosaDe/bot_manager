@@ -11,7 +11,7 @@ async def component_status(app_id: int):
 
     embed.title = status.name
     embed.description = (
-        f"<t:{status.uptime}:R>" if status.running else "Aplicão desligada"
+        f"<t:{int(status.uptime / 1000)}:R>" if status.running else "Aplicão desligada"
     )
     embed.add_field(name="Status", value="🟢Online" if status.running else "🔴Offline")
     embed.add_field(name="CPU", value=status.cpu)
@@ -42,13 +42,26 @@ class ConfirmationModal(discord.ui.Modal):
     async def on_submit(self, interaction: discord.Interaction):
         if not self.name.value == self.app_name:
             return await interaction.response.send_message(
-                "Nome incorreto", ephemeral=True
+                embed=discord.Embed(
+                    title="❌ Nome incorreto",
+                    description=(
+                        "O nome informado não corresponde ao da aplicação.\n"
+                        "Por favor, verifique e tente novamente."
+                    ),
+                    color=discord.Color.red(),
+                ),
+                ephemeral=True,
             )
 
         await square_manager.delete_app(app_id=self.app_id)
 
         return await interaction.response.send_message(
-            "Aplicacão excluida com sucesso", ephemeral=True
+            embed=discord.Embed(
+                title="✅ Aplicação excluída",
+                description="Seu app foi removido com sucesso da plataforma.",
+                color=discord.Color.green(),
+            ),
+            ephemeral=True,
         )
 
 
@@ -66,8 +79,8 @@ class AppControlView(discord.ui.View):
             label="Reiniciar", disabled=not self.running
         )
         self.btn_stop = discord.ui.Button(label="Desligar", disabled=not self.running)
-        self.btn_logs = discord.ui.Button(label="Logs", disabled=self.running)
-        self.btn_delete = discord.ui.Button(label="Deletar", disabled=self.running)
+        self.btn_logs = discord.ui.Button(label="Logs")
+        self.btn_delete = discord.ui.Button(label="Deletar")
 
         self.btn_start.callback = self.start
         self.btn_restart.callback = self.restart
@@ -119,7 +132,6 @@ class StatusCog(commands.Cog):
     @discord.app_commands.command(
         name="status", description="Veja status de suas aplicacoes"
     )
-    @discord.app_commands.describe()
     async def command_callback(self, interaction: discord.Interaction, name: str):
         try:
             await interaction.response.defer(thinking=True, ephemeral=True)
@@ -130,7 +142,11 @@ class StatusCog(commands.Cog):
             print(e)
 
             await interaction.edit_original_response(
-                content="Não foi encontrado um app com esse id"
+                embed=discord.Embed(
+                    title="🔍 App não encontrado",
+                    description="Nenhum aplicativo foi encontrado com esse ID. Verifique se o ID está correto ou tente novamente.",
+                    color=discord.Color.orange(),
+                )
             )
 
     @command_callback.autocomplete(name="name")

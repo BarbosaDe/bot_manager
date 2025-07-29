@@ -19,3 +19,6 @@ UPLOAD_ERRORS_TRANSLATIONS = {
     "InvalidDomain": "Domínio fornecido inválido.",
     "InvalidFile": "O arquivo enviado não é um arquivo válido (.zip)",
 }
+
+
+class DuplicateEntryError(Exception): ...

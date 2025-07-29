@@ -1,7 +1,7 @@
 import os
 import time
 from dataclasses import dataclass
-from typing import Optional, Union
+from typing import Optional
 
 from squarecloud import Application, Client, File
 
@@ -43,14 +43,17 @@ class SquareManager(Client):
 
         return self.cache["applications"]
 
-    async def upload_application(self, bytes, filename) -> Union[str, None]:
+    async def upload_application(self, bytes, filename) -> str:
         """Faz upload de uma aplicacão para SquareCloud"""
-        file = File(bytes)
+        file = File(bytes, filename="Foo.zip")
 
         try:
-            return await square_manager.upload_app(file, filename)
+            app = await square_manager.upload_app(file, filename="Foo.zip")
+
+            return f"A aplicacão {app.name} subiu com sucesso !"
 
         except Exception as e:
+            print(e)
             error = UPLOAD_ERRORS_TRANSLATIONS.get(e.__class__.__name__)
 
             if not error:

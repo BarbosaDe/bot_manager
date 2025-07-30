@@ -22,9 +22,49 @@
 ## 🚀 Comandos
 
 - `/upload` — Comando para enviar/upload de uma aplicacão
-- `/status` — Comando para verificar o status de uma aplicacão, também com autocomplete para selecionar o app.
+- `/status` — Comando para verificar o status de uma aplicacão
+- `/config` — Comando para enviar um painel para configurar os planos
+- `/comprar-plano` — Comando para comprar um plano
 
 ---
+
+---
+
+---
+
+# ✨ Comandos detalhados
+
+## `/upload`
+
+Ao enviar sua aplicação, o deploy será realizado automaticamente **caso ela contenha um arquivo de configuração** (`squarecloud.app` ou `squarecloud.config`).
+
+Se **não houver arquivo de configuração**, será exibido um painel perguntando se a aplicação é um website. Após selecionar uma opção, um modal será exibido com as **configurações básicas**:
+
+- Nome da aplicação
+- Arquivo principal
+- Memória máxima
+- Subdomínio (caso seja um website)
+
+Se todas as informações forem preenchidas corretamente, o deploy será iniciado.
+
+> 💡 Para configurações mais avançadas, utilize um dos arquivos de configuração:  
+> `squarecloud.app` ou `squarecloud.config`.
+
+## `/comprar-plano`
+
+Ao utilizar esse comando, será exibido um **menu de seleção** (Select Menu), onde será possível escolher o plano desejado.  
+Cada opção do menu exibirá as seguintes informações:
+
+- **Nome do plano**
+- **Valor**
+- **Memória RAM máxima**
+
+Após selecionar um plano, serão gerados:
+
+- Um **QR Code** para pagamento
+- Um **código "copia e cola"** para facilitar o pagamento via PIX
+
+## Basta realizar o pagamento para concluir a compra.
 
 ## 🧰 Tecnologias usadas
 

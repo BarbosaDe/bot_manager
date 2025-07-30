@@ -1,24 +1,63 @@
-UPLOAD_ERRORS_TRANSLATIONS = {
-    "NotFoundError": "Requisição não encontrada (404). Verifique o endpoint ou o recurso solicitado.",
-    "BadRequestError": "Requisição inválida (400). Verifique os dados enviados.",
-    "AuthenticationFailure": "Falha na autenticação (401). Verifique sua chave ou token de acesso.",
-    "TooManyRequestsError": "Muitas requisições em pouco tempo (429). Tente novamente mais tarde.",
-    "FewMemory": "Limite de memória atingido. Aumente sua alocação de memória.",
-    "BadMemory": "Valor de memória inválido no arquivo de configuração.",
-    "MissingConfigFile": "Arquivo de configuração ausente no .zip (squarecloud.app/squarecloud.config).",
-    "MissingDependenciesFile": "Arquivo de dependências ausente (requirements.txt, package.json, etc).",
-    "MissingMainFile": "Arquivo principal ausente (main.py, index.js, etc).",
-    "InvalidMain": "O campo MAIN no config está inválido ou o arquivo principal está corrompido.",
-    "InvalidDisplayName": "O campo DISPLAY_NAME no config está inválido.",
-    "MissingDisplayName": "O campo DISPLAY_NAME está ausente no config.",
-    "InvalidMemory": "O campo MEMORY no config é inválido.",
-    "MissingMemory": "O campo MEMORY está ausente no config.",
-    "InvalidVersion": 'O campo VERSION é inválido. Os valores aceitos são "recommended" ou "latest".',
-    "MissingVersion": "O campo VERSION está ausente no config.",
-    "InvalidAccessToken": "Token de acesso do GitHub inválido.",
-    "InvalidDomain": "Domínio fornecido inválido.",
-    "InvalidFile": "O arquivo enviado não é um arquivo válido (.zip)",
+from squarecloud.errors import (
+    ApplicationNotFound,
+    BadMemory,
+    BadRequestError,
+    FewMemory,
+    InvalidConfig,
+    InvalidDisplayName,
+    InvalidDomain,
+    InvalidFile,
+    InvalidMain,
+    InvalidMemory,
+    InvalidStart,
+    InvalidVersion,
+    MissingConfigFile,
+    MissingDependenciesFile,
+    MissingDisplayName,
+    MissingMainFile,
+    MissingMemory,
+    MissingVersion,
+    NotFoundError,
+    RequestError,
+    TooManyRequests,
+)
+
+EXCEPTION_TRANSLATIONS = {
+    RequestError.__name__: "Erro ao processar a requisição.",
+    NotFoundError.__name__: "Recurso não encontrado (404).",
+    BadRequestError.__name__: "Requisição malformada (400).",
+    ApplicationNotFound.__name__: "Aplicação não encontrada.",
+    InvalidFile.__name__: "Arquivo inválido.",
+    MissingConfigFile.__name__: "Arquivo de configuração ausente.",
+    MissingDependenciesFile.__name__: "Arquivo de dependências ausente.",
+    TooManyRequests.__name__: "Muitas requisições. Tente novamente mais tarde.",
+    FewMemory.__name__: "Memória insuficiente para hospedar a aplicação.",
+    BadMemory.__name__: "Você não possui memória disponível para hospedar a aplicação.",
+    InvalidConfig.__name__: "Arquivo de configuração inválido ou corrompido.",
+    InvalidDisplayName.__name__: "Nome de exibição inválido no arquivo de configuração.",
+    MissingDisplayName.__name__: "Nome de exibição ausente no arquivo de configuração.",
+    InvalidMain.__name__: "Arquivo principal inválido no arquivo de configuração.",
+    MissingMainFile.__name__: "Arquivo principal ausente no arquivo de configuração.",
+    InvalidMemory.__name__: "Valor de memória inválido no arquivo de configuração.",
+    MissingMemory.__name__: "Valor de memória ausente no arquivo de configuração.",
+    InvalidVersion.__name__: "Versão inválida no arquivo de configuração.",
+    MissingVersion.__name__: "Versão ausente no arquivo de configuração.",
+    InvalidDomain.__name__: "Domínio personalizado inválido.",
+    InvalidStart.__name__: "Valor de inicialização inválido no arquivo de configuração.",
 }
+
+
+def get_translated_exception_message(exc: Exception) -> str:
+    exc_type = type(exc)
+
+    for cls in exc_type.__mro__:
+        if cls.__name__ in EXCEPTION_TRANSLATIONS:
+            base_msg = EXCEPTION_TRANSLATIONS[cls.__name__]
+            break
+    else:
+        base_msg = "Ocorreu um erro inesperado."
+
+    return base_msg
 
 
 class DuplicateEntryError(Exception): ...

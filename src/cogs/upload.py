@@ -45,7 +45,7 @@ class UploadCog(commands.Cog):
             UserRepository.get(interaction.user.id),
         )
 
-        if not user.expired:
+        if not user or user.expired:
             return await interaction.edit_original_response(
                 embed=discord.Embed(
                     title="🚫 Nenhum plano ativo encontrado",

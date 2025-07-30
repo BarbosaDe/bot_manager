@@ -23,7 +23,8 @@ class UserRepository:
                 plans.max_ram AS plan_max_ram
 
                 FROM users
-                LEFT JOIN plans ON users.plan_id = plans.id;
+                LEFT JOIN plans ON users.plan_id = plans.id
+                WHERE users.user_id = ?;
             """,
             (user_id,),
         )
@@ -32,10 +33,10 @@ class UserRepository:
             return
 
         plan = Plan(
-            plan_id=row["plan_id"],
-            plan_name=row["plan_name"],
-            plan_price=row["plan_price"],
-            plan_max_ram=row["plan_max_ram"],
+            id=row["plan_id"],
+            name=row["plan_name"],
+            price=row["plan_price"],
+            max_ram=row["plan_max_ram"],
         )
 
         return User(
@@ -50,7 +51,7 @@ class UserRepository:
     async def update(user: User, expires_in_days: int = 30):
         now = datetime.now(UTC)
 
-        expires_at = now + timedelta(expires_in_days)
+        expires_at = now + timedelta(days=expires_in_days)
 
         await Database.write(
             "UPDATE users SET plan_id = ?, created_at = ?, expires_at = ? WHERE user_id = ?",
@@ -61,7 +62,7 @@ class UserRepository:
     async def insert(user: User, expires_in_days: int = 30) -> None:
         now = datetime.now(UTC)
 
-        expires_at = now + timedelta(expires_in_days)
+        expires_at = now + timedelta(days=expires_in_days)
 
         try:
             await Database.write(

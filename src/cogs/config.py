@@ -22,7 +22,7 @@ class ConfigCog(commands.Cog):
         view.add_item(AddPlanButton())
         view.add_item(EditPlanButton())
         view.add_item(RemovePlanButton())
-        await interaction.response.send_message(embed=embed, view=view)
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
 
 async def setup(bot: commands.Bot):

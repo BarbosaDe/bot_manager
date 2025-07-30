@@ -10,7 +10,7 @@ class Transaction:
     payer_id: Optional[int] = None
     server_id: Optional[int] = None
     price: Optional[float] = None
-    plan: Optional[str] = None
+    plan: Optional[int] = None
     created_at: Optional[str] = None
     status: Optional[str] = None
 

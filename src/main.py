@@ -4,13 +4,14 @@ from pathlib import Path
 
 import discord
 from aiohttp import web
-from discord.ext import commands
+from discord.ext import commands, tasks
 from dotenv import load_dotenv
 
 from database import Database
 from database.models import Plan, User
 from database.repository import TransactionRepository, UserRepository
 from payments import payment_service
+from utils.cache import Cache
 from utils.logger import logger
 
 load_dotenv()
@@ -38,6 +39,12 @@ async def on_ready():
     await bot.tree.sync()
 
 
+@tasks.loop(minutes=1)
+async def purge_cache_loop():
+    logger.debug("Iniciando Limpeza do cache")
+    Cache.purge_cache()
+
+
 @bot.event
 async def setup_hook():
     logger.info("[setup_hook] Iniciando bot...")
@@ -50,6 +57,8 @@ async def setup_hook():
 
     await bot.tree.sync()
     logger.info("[setup_hook] Slash commands sincronizados.")
+
+    purge_cache_loop.start()
 
 
 async def send_confirmation_payment(server_id, payer_id):
@@ -80,6 +89,8 @@ async def notifications(request: web.Request):
 
         if payment["status"] == "approved":
             transaction = await TransactionRepository.get(payment_id)
+
+            print(transaction)
 
             plan = Plan(id=transaction.plan)
             user = User(user_id=transaction.payer_id, plan=plan)

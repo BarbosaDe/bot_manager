@@ -11,7 +11,9 @@ async def component_status(app_id: int):
 
     embed.title = status.name
     embed.description = (
-        f"<t:{int(status.uptime / 1000)}:R>" if status.running else "Aplicão desligada"
+        f"<t:{int(status.uptime / 1000)}:R>"
+        if status.running
+        else "Aplicacão desligada"
     )
     embed.add_field(name="Status", value="🟢Online" if status.running else "🔴Offline")
     embed.add_field(name="CPU", value=status.cpu)
@@ -116,10 +118,21 @@ class AppControlView(discord.ui.View):
         await interaction.response.edit_message(embed=status[0], view=status[1])
 
     async def logs(self, interaction: discord.Interaction):
-        logs = await square_manager.get_logs(app_id=self.app_id)
+        app = await square_manager.get_logs(app_id=self.app_id)
 
-        template = f"```{self.lang}\n{logs.logs}```"
-        await interaction.response.send_message(content=template, ephemeral=True)
+        template = f"```{self.lang}\n{app.logs}```"
+
+        if len(template) < 2000:
+            return await interaction.response.send_message(
+                content=template, ephemeral=True
+            )
+        import io
+
+        buffer = io.BytesIO(app.logs.encode())
+
+        await interaction.response.send_message(
+            file=discord.File(buffer, "logs.txt"), ephemeral=True
+        )
 
     async def delete(self, interaction: discord.Interaction):
         await interaction.response.send_modal(ConfirmationModal(self.app_id, self.name))
@@ -138,9 +151,7 @@ class StatusCog(commands.Cog):
 
             status = await component_status(name)
             await interaction.edit_original_response(embed=status[0], view=status[1])
-        except Exception as e:
-            print(e)
-
+        except Exception:
             await interaction.edit_original_response(
                 embed=discord.Embed(
                     title="🔍 App não encontrado",

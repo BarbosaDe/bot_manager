@@ -14,7 +14,16 @@ class RemovePlanButton(discord.ui.Button):
         )
 
     async def callback(self, interaction: discord.Interaction):
-        plans = await PlanRepository.list()
+        plans = await PlanRepository.list(25)
+
+        if not plans:
+            embed = discord.Embed(
+                title="Nenhum plano disponível",
+                description="Atualmente não há planos cadastrados ou disponíveis para seleção.",
+                color=discord.Color.red(),
+            )
+
+            return await interaction.response.send_message(embed=embed, ephemeral=True)
 
         view = discord.ui.View()
 
@@ -45,6 +54,15 @@ class EditPlanButton(discord.ui.Button):
 
     async def callback(self, interaction: discord.Interaction):
         plans = await PlanRepository.list()
+
+        if not plans:
+            embed = discord.Embed(
+                title="Nenhum plano disponível",
+                description="Atualmente não há planos cadastrados ou disponíveis para seleção.",
+                color=discord.Color.red(),
+            )
+
+            return await interaction.response.send_message(embed=embed, ephemeral=True)
 
         view = discord.ui.View()
 

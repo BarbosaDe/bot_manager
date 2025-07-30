@@ -27,6 +27,7 @@ class MercadoPagoDriver(BasePayment):
             "description": "lorem ipsom",
             "payment_method_id": "pix",
             "payer": {"email": "foo@gmail.com"},
+            "notification_url": os.getenv("WEBHOOK_URL"),
         }
 
         async with aiohttp.ClientSession() as session:

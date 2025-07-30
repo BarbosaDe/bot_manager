@@ -5,7 +5,7 @@ from typing import Optional
 
 from squarecloud import Application, Client, File
 
-from exceptions import UPLOAD_ERRORS_TRANSLATIONS
+from exceptions import get_translated_exception_message
 
 
 @dataclass(slots=True, frozen=True)
@@ -53,13 +53,7 @@ class SquareManager(Client):
             return f"A aplicacão {app.name} subiu com sucesso !"
 
         except Exception as e:
-            print(e)
-            error = UPLOAD_ERRORS_TRANSLATIONS.get(e.__class__.__name__)
-
-            if not error:
-                raise e
-
-            return error
+            return get_translated_exception_message(e)
 
     async def status_application(self, application_id: int):
         """Retorna informacões sobre uma aplicacão da SquareCloud"""

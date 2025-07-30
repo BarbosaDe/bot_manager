@@ -28,11 +28,7 @@
 
 ---
 
----
-
----
-
-# ✨ Comandos detalhados
+## ✨ Comandos detalhados
 
 ## `/upload`
 
@@ -64,7 +60,7 @@ Após selecionar um plano, serão gerados:
 - Um **QR Code** para pagamento
 - Um **código "copia e cola"** para facilitar o pagamento via PIX
 
-## Basta realizar o pagamento para concluir a compra.
+- Basta realizar o pagamento para concluir a compra.
 
 ## 🧰 Tecnologias usadas
 

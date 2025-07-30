@@ -1,12 +1,5 @@
-def is_int(string):
+def type_check(string, type):
     try:
-        return abs(int(string))
-    except ValueError:
-        return
-
-
-def is_float(string):
-    try:
-        return float(string)
+        return type(string)
     except ValueError:
         return

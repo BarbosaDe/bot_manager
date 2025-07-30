@@ -50,7 +50,16 @@ class SettingsSquareApp(discord.ui.Modal):
         await interaction.response.defer(thinking=True, ephemeral=True)
         try:
             config_file = ConfigFile(**config)
+
             zip_bytes = Cache.get(interaction.user.id)
+
+            if not zip_bytes:
+                return await self._send_error(
+                    interaction,
+                    "Erro",
+                    "Arquivo não encontrado. Envie-o novamente.",
+                    0xED4245,
+                )
 
             new_zip = insert_squarecloud_config(
                 zip_bytes, "squarecloud.app", config_file.content().encode()
@@ -84,12 +93,8 @@ class SettingsSquareApp(discord.ui.Modal):
                     color=0xED4245,
                 )
 
-        finally:
-            Cache.delete(interaction.user.id)
-
     async def _send_error(
         self, interaction: discord.Interaction, title: str, description: str, color: int
     ):
-        """Envia uma resposta de erro com embed."""
         embed = discord.Embed(title=title, description=description, color=color)
         await interaction.edit_original_response(embed=embed)

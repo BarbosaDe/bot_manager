@@ -24,7 +24,15 @@ class SelectPlan(discord.ui.Select):
         self.mode = mode
 
     async def callback(self, interaction):
-        plan = await PlanRepository.get(self.values[0])
+        plan = await PlanRepository.get(int(self.values[0]))
+
+        if not plan:
+            embed = discord.Embed(
+                title="🗑️ Plano não encontrado",
+                description="O plano selecionado não foi encontrado.",
+                color=discord.Color.red(),
+            )
+            return await interaction.response.send_message(embed=embed, ephemeral=True)
 
         if self.mode == "edit":
             await interaction.response.send_modal(EditPlanModal(plan))

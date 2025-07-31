@@ -10,5 +10,5 @@ wheels/
 .venv
 .python-version
 uv.lock
-src/.env
+.env
 src/database/db.sqlite

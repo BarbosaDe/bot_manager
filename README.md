@@ -22,7 +22,7 @@
 ## 🚀 Comandos
 
 - `/upload` — Comando para enviar/upload de uma aplicacão
-- `/status` — Comando para verificar o status de uma aplicacão
+- `/status` — Comando para verificar o status de uma aplicação (serão listadas apenas suas aplicações)
 - `/config` — Comando para enviar um painel para configurar os planos
 - `/comprar-plano` — Comando para comprar um plano
 
@@ -75,6 +75,8 @@ Após selecionar um plano, serão gerados:
 
 ## 📦 Instalação
 
+# Local
+
 ```bash
 
 # Clone o repositorio
@@ -91,6 +93,18 @@ python build/lib/main.py
 
 ```
 
+# SquareCloud
+
+1. Baixe o arquivo `.zip` neste link:  
+   [bot_manager.zip](https://github.com/BarbosaDe/bot_manager/releases/download/1.0/bot_manager.zip)
+
+2. Acesse o painel de upload do SquareCloud:  
+   https://squarecloud.app/pt-br/dashboard/upload?type=archive
+
+3. Clique em **"Selecione um arquivo .zip"** e escolha o arquivo baixado.
+
+4. Configure seu bot conforme desejar, ajuste as variáveis de ambiente e clique em **"Enviar aplicação"**.
+
 ---
 
-_💡 Configure seu `.env` dentro do diretório `build/lib`. Use `.env.example` como referência._
+_💡 Lembre-se de configurar seu .env. Use .env.example como referência._

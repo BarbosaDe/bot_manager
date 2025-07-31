@@ -10,6 +10,12 @@ class ConfigCog(commands.Cog):
 
     @discord.app_commands.command(name="config", description="configure seu bot[admin]")
     async def callback(self, interaction: discord.Interaction):
+        if not interaction.user.guild_permissions.administrator:
+            return await interaction.response.send_message(
+                "❌ Você precisa ser administrador para usar este comando.",
+                ephemeral=True,
+            )
+
         embed = discord.Embed(
             title="⚙️ Configuração de Planos",
             description="Gerencie os planos disponíveis para seu bot.\n\n- Adicione novos planos\n- Edite os existentes\n- Remova planos obsoletos",

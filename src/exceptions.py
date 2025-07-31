@@ -22,6 +22,8 @@ from squarecloud.errors import (
     TooManyRequests,
 )
 
+from utils.logger import logger
+
 EXCEPTION_TRANSLATIONS = {
     RequestError.__name__: "Erro ao processar a requisição.",
     NotFoundError.__name__: "Recurso não encontrado (404).",
@@ -50,12 +52,16 @@ EXCEPTION_TRANSLATIONS = {
 def get_translated_exception_message(exc: Exception) -> str:
     exc_type = type(exc)
 
+    if "INVALID_SUBDOMAIN" in str(exc):
+        return EXCEPTION_TRANSLATIONS[InvalidDomain.__name__]
+
     for cls in exc_type.__mro__:
         if cls.__name__ in EXCEPTION_TRANSLATIONS:
             base_msg = EXCEPTION_TRANSLATIONS[cls.__name__]
             break
     else:
         base_msg = "Ocorreu um erro inesperado."
+        logger.warning("ocorreu um erro ao subir aplicacão", exc_info=True)
 
     return base_msg
 

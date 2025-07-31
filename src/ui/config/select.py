@@ -4,7 +4,7 @@ import io
 import discord
 
 from database.repository import PlanRepository
-from payments import payment_service
+from services.payments import payment_service
 from ui.config.modals import EditPlanModal
 
 

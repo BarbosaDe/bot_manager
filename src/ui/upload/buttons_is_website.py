@@ -1,6 +1,6 @@
 import discord
 
-from ui.settings_app_modal import SettingsSquareApp
+from ui.upload.settings_app_modal import SettingsSquareApp
 
 
 class WebsiteButtons(discord.ui.View):

@@ -50,4 +50,4 @@ class PlanRepository:
     async def list(limit: int = 20) -> Optional[list[Plan]]:
         rows = await Database.read("SELECT * FROM plans", (), fetch="all")
 
-        return (Plan(**row) for row in rows) if rows else None
+        return [Plan(**row) for row in rows][:limit] if rows else None

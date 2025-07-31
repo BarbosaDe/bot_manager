@@ -1,11 +1,19 @@
+import asyncio
+
 import discord
 from discord.ext import commands
 
-from square_manager import square_manager
+from database.repository import ApplicationRepository
+from exceptions import get_translated_exception_message
+from services.square_manager import square_manager
+from utils.logger import logger
 
 
 async def component_status(app_id: int):
     status = await square_manager.status_application(app_id)
+
+    if not status:
+        return
 
     embed = discord.Embed()
 
@@ -55,16 +63,38 @@ class ConfirmationModal(discord.ui.Modal):
                 ephemeral=True,
             )
 
-        await square_manager.delete_app(app_id=self.app_id)
+        try:
+            await asyncio.gather(
+                square_manager.delete_app(app_id=self.app_id),
+                ApplicationRepository.delete(app_id=self.app_id),
+            )
 
-        return await interaction.response.send_message(
-            embed=discord.Embed(
-                title="✅ Aplicação excluída",
-                description="Seu app foi removido com sucesso da plataforma.",
-                color=discord.Color.green(),
-            ),
-            ephemeral=True,
-        )
+            return await interaction.response.send_message(
+                embed=discord.Embed(
+                    title="✅ Aplicação excluída",
+                    description="Seu app foi removido com sucesso da plataforma.",
+                    color=discord.Color.green(),
+                ),
+                ephemeral=True,
+            )
+
+        except Exception as e:
+            logger.error("Erro ao excluir aplicacão", exc_info=True)
+
+            error = get_translated_exception_message(e)
+
+            return await interaction.response.send_message(
+                embed=discord.Embed(
+                    title="❌ Erro ao excluir aplicacão",
+                    description=(
+                        error
+                        if error
+                        else "Ocorreu um erro desconhecido. Se o problema persistir, entre em contato com um administrador."
+                    ),
+                    color=discord.Color.red(),
+                ),
+                ephemeral=True,
+            )
 
 
 class AppControlView(discord.ui.View):
@@ -146,33 +176,37 @@ class StatusCog(commands.Cog):
         name="status", description="Veja status de suas aplicacoes"
     )
     async def command_callback(self, interaction: discord.Interaction, name: str):
-        try:
-            await interaction.response.defer(thinking=True, ephemeral=True)
+        await interaction.response.defer(thinking=True, ephemeral=True)
 
-            status = await component_status(name)
-            await interaction.edit_original_response(embed=status[0], view=status[1])
-        except Exception:
-            await interaction.edit_original_response(
-                embed=discord.Embed(
-                    title="🔍 App não encontrado",
-                    description="Nenhum aplicativo foi encontrado com esse ID. Verifique se o ID está correto ou tente novamente.",
-                    color=discord.Color.orange(),
-                )
+        status = await component_status(name)
+
+        if status:
+            return await interaction.edit_original_response(
+                embed=status[0], view=status[1]
             )
+
+        await interaction.edit_original_response(
+            embed=discord.Embed(
+                title="🔍 App não encontrado",
+                description="Nenhum aplicativo foi encontrado com esse ID. Verifique se o ID está correto ou tente novamente.",
+                color=discord.Color.orange(),
+            )
+        )
 
     @command_callback.autocomplete(name="name")
     async def search_app(self, interaction, name: str):
-        apps = await square_manager.apps
-        choices = [
-            discord.app_commands.Choice(name=app.name, value=app.id)
-            for app in apps
-            if app.name.startswith(name)
-        ]
+        apps = await ApplicationRepository.list(interaction.user.id)
 
-        if not choices:
+        if not apps:
             return [
                 discord.app_commands.Choice(name="Nenhum app encontrado", value="foo")
             ]
+
+        choices = [
+            discord.app_commands.Choice(name=app.name, value=app.application_id)
+            for app in apps
+            if app.name.startswith(name)
+        ]
 
         return choices[:25]
 

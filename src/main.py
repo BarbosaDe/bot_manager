@@ -8,9 +8,9 @@ from discord.ext import commands, tasks
 from dotenv import load_dotenv
 
 from database import Database
-from database.models import Plan, User
-from database.repository import TransactionRepository, UserRepository
-from payments import payment_service
+from database.models import User
+from database.repository import PlanRepository, TransactionRepository, UserRepository
+from services.payments import payment_service
 from utils.cache import Cache
 from utils.logger import logger
 
@@ -61,18 +61,18 @@ async def setup_hook():
     purge_cache_loop.start()
 
 
-async def send_confirmation_payment(server_id, payer_id):
+async def send_confirmation_payment(server_id, payer_id, plan):
     server = await bot.fetch_guild(server_id)
     user = await server.fetch_member(payer_id)
 
     embed = discord.Embed(
         title="✅ Plano adquirido com sucesso!",
-        description="Você adquiriu o plano **tanana**.",
+        description=f"Você adquiriu o plano **{plan.name}**.",
         color=discord.Color.green(),
     )
 
-    embed.add_field(name="💰 Preço", value="R$ 20.00", inline=True)
-    embed.add_field(name="🧠 RAM máxima", value="20244 MB", inline=True)
+    embed.add_field(name="💰 Preço", value=f"R$ {plan.price:.2f}", inline=True)
+    embed.add_field(name="🧠 RAM máxima", value=f"{plan.max_ram} MB", inline=True)
     embed.set_footer(text="Obrigado por escolher nossos serviços!")
     embed.set_thumbnail(url="https://cdn-icons-png.flaticon.com/512/190/190411.png")
 
@@ -90,9 +90,8 @@ async def notifications(request: web.Request):
         if payment["status"] == "approved":
             transaction = await TransactionRepository.get(payment_id)
 
-            print(transaction)
+            plan = await PlanRepository.get(transaction.plan)
 
-            plan = Plan(id=transaction.plan)
             user = User(user_id=transaction.payer_id, plan=plan)
 
             await asyncio.gather(
@@ -101,7 +100,7 @@ async def notifications(request: web.Request):
             )
 
             return await send_confirmation_payment(
-                transaction.server_id, transaction.payer_id
+                transaction.server_id, transaction.payer_id, plan
             )
 
     except Exception:

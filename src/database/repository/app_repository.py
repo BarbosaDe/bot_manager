@@ -6,15 +6,21 @@ from database.models.models import Application
 
 class ApplicationRepository:
     @staticmethod
-    async def insert(name: str, price: float, max_ram: int):
+    async def insert(owner: int, app_id: str, app_name: str, ram: int):
         await Database.write(
-            "INSERT INTO applications (name, price, max_ram) VALUES (?, ?, ?)",
-            (name, price, max_ram),
+            "INSERT INTO applications (owner, application_id, name, ram) VALUES (?, ?, ?, ?)",
+            (owner, app_id, app_name, ram),
         )
 
     @staticmethod
-    async def list(limit: int = 20) -> Optional[list[Application]]:
-        rows = await Database.read(
-            "SELECT * FROM applications LIMIT ?", (limit,), fetch="all"
+    async def delete(app_id: str):
+        await Database.write(
+            "DELETE FROM applications WHERE application_id == ?", (app_id,)
         )
-        return [Application(**row) for row in rows]
+
+    @staticmethod
+    async def list(owner) -> Optional[list[Application]]:
+        rows = await Database.read(
+            "SELECT * FROM applications WHERE owner = ?", (owner,), fetch="all"
+        )
+        return [Application(**row) for row in rows][:25] if rows else None

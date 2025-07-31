@@ -3,9 +3,9 @@ import time
 from dataclasses import dataclass
 from typing import Optional
 
-from squarecloud import Application, Client, File
+from squarecloud import Application, Client, File, UploadData
 
-from exceptions import get_translated_exception_message
+from database.repository import ApplicationRepository
 
 
 @dataclass(slots=True, frozen=True)
@@ -43,17 +43,17 @@ class SquareManager(Client):
 
         return self.cache["applications"]
 
-    async def upload_application(self, bytes, filename) -> str:
+    async def upload_application(self, bytes, owner) -> UploadData:
         """Faz upload de uma aplicacão para SquareCloud"""
         file = File(bytes, filename="Foo.zip")
 
-        try:
-            app = await square_manager.upload_app(file, filename="Foo.zip")
+        app = await square_manager.upload_app(file)
 
-            return f"A aplicacão {app.name} subiu com sucesso !"
+        await ApplicationRepository.insert(
+            owner, app_id=app.id, app_name=app.name, ram=app.ram
+        )
 
-        except Exception as e:
-            return get_translated_exception_message(e)
+        return app
 
     async def status_application(self, application_id: int):
         """Retorna informacões sobre uma aplicacão da SquareCloud"""

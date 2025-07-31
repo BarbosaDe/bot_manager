@@ -1,7 +1,8 @@
 import discord
 from squarecloud.utils import ConfigFile
 
-from square_manager import square_manager
+from database.repository import UserRepository
+from services.uploader_service import chack_ram_limit, handle_application_upload
 from utils.cache import Cache
 from utils.config_parser import insert_squarecloud_config
 
@@ -51,6 +52,13 @@ class SettingsSquareApp(discord.ui.Modal):
         try:
             config_file = ConfigFile(**config)
 
+            user = await UserRepository.get(interaction.user.id)
+
+            ram_exceeded = await chack_ram_limit(user, config)
+
+            if ram_exceeded:
+                return await interaction.edit_original_response(embed=ram_exceeded)
+
             zip_bytes = Cache.get(interaction.user.id)
 
             if not zip_bytes:
@@ -64,9 +72,9 @@ class SettingsSquareApp(discord.ui.Modal):
             new_zip = insert_squarecloud_config(
                 zip_bytes, "squarecloud.app", config_file.content().encode()
             )
-            response = await square_manager.upload_application(new_zip, filename="Foo")
 
-            return await interaction.edit_original_response(content=response)
+            embed = await handle_application_upload(new_zip, interaction.user.id)
+            await interaction.edit_original_response(embed=embed)
 
         except ValueError as e:
             error_message = str(e).lower()

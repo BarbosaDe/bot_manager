@@ -30,7 +30,9 @@ CREATE TABLE IF NOT EXISTS plans (
 CREATE TABLE IF NOT EXISTS applications (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     owner INTEGER NOT NULL,
-    application_id INTEGER NOT NULL
+    name TEXT NOT NULL,
+    application_id TEXT NOT NULL,
+    ram INTEGER NOT NULL
 );
 
 

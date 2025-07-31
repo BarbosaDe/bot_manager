@@ -1,11 +1,20 @@
 import io
 import zipfile
 from contextlib import ExitStack
+from typing import Optional
 
 from squarecloud.utils import ConfigFile
 
 
-def get_squarecloud_config(zip_bytes: bytes):
+def get_squarecloud_config(zip_bytes: bytes) -> Optional[ConfigFile]:
+    """
+    Verifica se um zip contem o arquivo squarecloud.config ou squarecloud.app
+
+    :param zip_bytes: bytes do arquivo zip
+    :return ConfinFile: caso for encontrado o arquivo de configuracão
+    :return None: caso não seja encontrado o arquivo de configuracão
+    """
+
     with ExitStack() as stack:
         zip_memory = stack.enter_context(io.BytesIO(zip_bytes))
         zip = stack.enter_context(zipfile.ZipFile(zip_memory))

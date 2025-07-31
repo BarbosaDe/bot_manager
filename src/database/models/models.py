@@ -20,6 +20,8 @@ class Application:
     id: Optional[int] = None
     owner: Optional[int] = None
     application_id: Optional[int] = None
+    name: Optional[str] = None
+    ram: Optional[int] = None
 
 
 @dataclass

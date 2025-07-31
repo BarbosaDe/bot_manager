@@ -4,8 +4,8 @@ import discord
 from discord.ext import commands
 
 from database.repository.user_repository import UserRepository
-from square_manager import square_manager
-from ui.buttons_is_website import WebsiteButtons
+from services.uploader_service import chack_ram_limit, handle_application_upload
+from ui.upload.buttons_is_website import WebsiteButtons
 from utils.cache import Cache
 from utils.config_parser import get_squarecloud_config
 
@@ -45,6 +45,7 @@ class UploadCog(commands.Cog):
             UserRepository.get(interaction.user.id),
         )
 
+        # Verifica se o usuario existe e se seu plano esta expirado
         if not user or user.expired:
             return await interaction.edit_original_response(
                 embed=discord.Embed(
@@ -61,19 +62,26 @@ class UploadCog(commands.Cog):
         Cache.insert(interaction.user.id, zip_bytes)
         config = get_squarecloud_config(zip_bytes)
 
-        if config:
-            response = await square_manager.upload_application(zip_bytes, "Foo")
-            return await interaction.edit_original_response(content=response)
+        # Se não tiver inicia o processo de configuracão da aplicacão
+        if not config:
+            embed = discord.Embed(
+                title="🌐 Sua aplicação é um website?",
+                description="Responda se a aplicação que está enviando é um site acessível por navegador.",
+                color=discord.Color.blurple(),
+            )
 
-        embed = discord.Embed(
-            title="🌐 Sua aplicação é um website?",
-            description="Responda se a aplicação que está enviando é um site acessível por navegador.",
-            color=discord.Color.blurple(),
-        )
+            return await interaction.edit_original_response(
+                embed=embed, view=WebsiteButtons()
+            )
 
-        return await interaction.edit_original_response(
-            embed=embed, view=WebsiteButtons()
-        )
+        ram_exceeded = await chack_ram_limit(user, config)
+
+        if ram_exceeded:
+            return await interaction.edit_original_response(embed=ram_exceeded)
+
+        embed = await handle_application_upload(zip_bytes, interaction.user.id)
+
+        await interaction.edit_original_response(embed=embed)
 
 
 async def setup(bot: commands.Bot):
